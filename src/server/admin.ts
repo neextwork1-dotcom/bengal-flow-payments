@@ -1,22 +1,21 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
-type AuthedContext = {
-  supabase: {
-    rpc: (fn: string, args: Record<string, unknown>) => Promise<{ data: unknown; error: unknown }>;
-    from: (table: string) => any;
-  };
+type Ctx = {
+  supabase: any;
   userId: string;
 };
 
-async function assertAdmin(context: AuthedContext) {
-  const { data, error } = await context.supabase.rpc("has_role", {
-    _user_id: context.userId,
+async function requireAdmin(context: unknown): Promise<Ctx> {
+  const ctx = context as Ctx;
+  const { data, error } = await ctx.supabase.rpc("has_role", {
+    _user_id: ctx.userId,
     _role: "admin",
   });
   if (error || !data) {
     throw new Error("Forbidden");
   }
+  return ctx;
 }
 
 function randomHex(bytes: number) {
@@ -39,18 +38,17 @@ async function sha256Hex(value: string) {
 export const getDashboard = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    await assertAdmin(context as AuthedContext);
-    const supabase = (context as AuthedContext).supabase;
+    const { supabase } = await requireAdmin(context);
     const { data: payments } = await supabase
       .from("payments")
       .select("id, amount, status, order_id, created_at, merchant_id, merchants(name)")
       .order("created_at", { ascending: false })
       .limit(500);
     const rows = payments ?? [];
-    const completed = rows.filter((r: any) => r.status === "complete");
-    const pending = rows.filter((r: any) => r.status === "pending");
+    const completed = rows.filter((r: any) => r["status"] === "complete");
+    const pending = rows.filter((r: any) => r["status"] === "pending");
     const total = completed.reduce(
-      (sum: number, r: any) => sum + Number(r.amount ?? 0),
+      (sum: number, r: any) => sum + Number(r["amount"] ?? 0),
       0,
     );
     return {
@@ -68,8 +66,7 @@ export const listTransactions = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: { status?: string; search?: string } | undefined) => input ?? {})
   .handler(async ({ data, context }) => {
-    await assertAdmin(context as AuthedContext);
-    const supabase = (context as AuthedContext).supabase;
+    const { supabase } = await requireAdmin(context);
     let query = supabase
       .from("payments")
       .select("*, merchants(name, nagad_number)")
@@ -93,19 +90,18 @@ export const updatePaymentStatus = createServerFn({ method: "POST" })
     (input: { id: string; status: "pending" | "complete" | "failed"; trxId?: string }) => input,
   )
   .handler(async ({ data, context }) => {
-    await assertAdmin(context as AuthedContext);
-    const supabase = (context as AuthedContext).supabase;
+    const { supabase } = await requireAdmin(context);
     const patch: Record<string, unknown> = {
       status: data.status,
       updated_at: new Date().toISOString(),
     };
     if (data.status === "complete") {
-      patch.verified_at = new Date().toISOString();
-      if (data.trxId) patch.trx_id = data.trxId.trim().toUpperCase();
+      patch["verified_at"] = new Date().toISOString();
+      if (data.trxId) patch["trx_id"] = data.trxId.trim().toUpperCase();
     }
     if (data.status === "pending") {
-      patch.trx_id = null;
-      patch.verified_at = null;
+      patch["trx_id"] = null;
+      patch["verified_at"] = null;
     }
     const { error } = await supabase.from("payments").update(patch).eq("id", data.id);
     if (error) throw new Error(String(error));
@@ -117,8 +113,8 @@ export const updatePaymentStatus = createServerFn({ method: "POST" })
 export const listMerchants = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    await assertAdmin(context as AuthedContext);
-    const { data, error } = await (context as AuthedContext).supabase
+    const { supabase } = await requireAdmin(context);
+    const { data, error } = await supabase
       .from("merchants")
       .select("*")
       .order("created_at", { ascending: true });
@@ -132,8 +128,7 @@ export const saveMerchant = createServerFn({ method: "POST" })
     (input: { id?: string; name: string; nagadNumber: string; isActive?: boolean }) => input,
   )
   .handler(async ({ data, context }) => {
-    await assertAdmin(context as AuthedContext);
-    const supabase = (context as AuthedContext).supabase;
+    const { supabase } = await requireAdmin(context);
     const row = {
       name: data.name.trim(),
       nagad_number: data.nagadNumber.trim(),
@@ -150,7 +145,7 @@ export const saveMerchant = createServerFn({ method: "POST" })
       .select("id")
       .single();
     if (error) throw new Error(String(error));
-    return { ok: true, id: created.id };
+    return { ok: true, id: created["id"] as string };
   });
 
 // ---------- Payment links (manual payment creation) ----------
@@ -169,8 +164,7 @@ export const createPaymentLink = createServerFn({ method: "POST" })
     }) => input,
   )
   .handler(async ({ data, context }) => {
-    await assertAdmin(context as AuthedContext);
-    const supabase = (context as AuthedContext).supabase;
+    const { supabase } = await requireAdmin(context);
     if (!(data.amount > 0) || data.amount > 10_000_000) {
       throw new Error("Amount must be greater than 0");
     }
@@ -188,7 +182,7 @@ export const createPaymentLink = createServerFn({ method: "POST" })
       .select("id")
       .single();
     if (error) throw new Error(String(error));
-    return { id: created.id };
+    return { id: created["id"] as string };
   });
 
 // ---------- API keys ----------
@@ -196,8 +190,8 @@ export const createPaymentLink = createServerFn({ method: "POST" })
 export const listApiKeys = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    await assertAdmin(context as AuthedContext);
-    const { data, error } = await (context as AuthedContext).supabase
+    const { supabase } = await requireAdmin(context);
+    const { data, error } = await supabase
       .from("api_keys")
       .select("id, label, key_prefix, is_active, last_used_at, created_at")
       .order("created_at", { ascending: false });
@@ -209,11 +203,10 @@ export const createApiKey = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: { label: string }) => input)
   .handler(async ({ data, context }) => {
-    await assertAdmin(context as AuthedContext);
+    const { supabase } = await requireAdmin(context);
     const plaintext = "npk_" + randomHex(24);
     const keyHash = await sha256Hex(plaintext);
-    const { data: created, error } = await (context as AuthedContext)
-      .supabase
+    const { data: created, error } = await supabase
       .from("api_keys")
       .insert({
         label: data.label.trim() || "Untitled key",
@@ -231,9 +224,8 @@ export const toggleApiKey = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: { id: string; isActive: boolean }) => input)
   .handler(async ({ data, context }) => {
-    await assertAdmin(context as AuthedContext);
-    const { error } = await (context as AuthedContext)
-      .supabase
+    const { supabase } = await requireAdmin(context);
+    const { error } = await supabase
       .from("api_keys")
       .update({ is_active: data.isActive })
       .eq("id", data.id);
@@ -245,12 +237,8 @@ export const deleteApiKey = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: { id: string }) => input)
   .handler(async ({ data, context }) => {
-    await assertAdmin(context as AuthedContext);
-    const { error } = await (context as AuthedContext)
-      .supabase
-      .from("api_keys")
-      .delete()
-      .eq("id", data.id);
+    const { supabase } = await requireAdmin(context);
+    const { error } = await supabase.from("api_keys").delete().eq("id", data.id);
     if (error) throw new Error(String(error));
     return { ok: true };
   });
