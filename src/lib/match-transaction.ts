@@ -23,7 +23,8 @@ export function extractTrxIdFromSms(body: string): string | null {
   ];
   for (const re of patterns) {
     const m = body.match(re);
-    if (m?.[1]) return normalizeTrxId(m[1]);
+    const captured = m?.[1];
+    if (captured) return normalizeTrxId(captured);
   }
   return null;
 }
