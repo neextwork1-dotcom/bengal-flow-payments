@@ -1,0 +1,13 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1792667052914,
+      "tag": "0000_nagadpay_schema",
+      "breakpoints": true
+    }
+  ]
+}
