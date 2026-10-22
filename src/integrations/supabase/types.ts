@@ -14,16 +14,194 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      api_keys: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          key_hash: string
+          key_prefix: string
+          label: string
+          last_used_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          key_hash: string
+          key_prefix: string
+          label: string
+          last_used_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          key_hash?: string
+          key_prefix?: string
+          label?: string
+          last_used_at?: string | null
+        }
+        Relationships: []
+      }
+      merchants: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          nagad_number: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          nagad_number: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          nagad_number?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      payments: {
+        Row: {
+          amount: number
+          callback_sent_at: string | null
+          callback_status: string | null
+          callback_url: string | null
+          created_at: string
+          customer_name: string | null
+          customer_phone: string | null
+          id: string
+          merchant_id: string
+          metadata: Json
+          order_id: string | null
+          redirect_url: string | null
+          status: string
+          trx_id: string | null
+          updated_at: string
+          verified_at: string | null
+        }
+        Insert: {
+          amount: number
+          callback_sent_at?: string | null
+          callback_status?: string | null
+          callback_url?: string | null
+          created_at?: string
+          customer_name?: string | null
+          customer_phone?: string | null
+          id?: string
+          merchant_id: string
+          metadata?: Json
+          order_id?: string | null
+          redirect_url?: string | null
+          status?: string
+          trx_id?: string | null
+          updated_at?: string
+          verified_at?: string | null
+        }
+        Update: {
+          amount?: number
+          callback_sent_at?: string | null
+          callback_status?: string | null
+          callback_url?: string | null
+          created_at?: string
+          customer_name?: string | null
+          customer_phone?: string | null
+          id?: string
+          merchant_id?: string
+          metadata?: Json
+          order_id?: string | null
+          redirect_url?: string | null
+          status?: string
+          trx_id?: string | null
+          updated_at?: string
+          verified_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_merchant_id_fkey"
+            columns: ["merchant_id"]
+            isOneToOne: false
+            referencedRelation: "merchants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sms_transactions: {
+        Row: {
+          account_number: string | null
+          amount: number | null
+          body: string
+          created_at: string
+          device_id: string | null
+          id: string
+          received_at: string
+          sender: string
+          trx_id: string | null
+        }
+        Insert: {
+          account_number?: string | null
+          amount?: number | null
+          body: string
+          created_at?: string
+          device_id?: string | null
+          id?: string
+          received_at?: string
+          sender: string
+          trx_id?: string | null
+        }
+        Update: {
+          account_number?: string | null
+          amount?: number | null
+          body?: string
+          created_at?: string
+          device_id?: string | null
+          id?: string
+          received_at?: string
+          sender?: string
+          trx_id?: string | null
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +328,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin"],
+    },
   },
 } as const
