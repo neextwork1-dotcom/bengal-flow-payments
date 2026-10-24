@@ -17,6 +17,7 @@ export function BrandIntro() {
       return () => clearTimeout(timer);
     }
     setVisible(false);
+    return undefined;
   }, [pathname]);
   if (!visible && !pending) return null;
   return <div className="brand-intro" role="status" aria-label="Neext Pay loading">
