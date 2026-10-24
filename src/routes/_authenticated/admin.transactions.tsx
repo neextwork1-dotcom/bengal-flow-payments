@@ -22,7 +22,7 @@ function Transactions() {
 
   async function setTo(id: string, s: "pending" | "complete" | "failed") {
     const trxId = s === "complete" ? (prompt("TRX ID (optional)") ?? undefined) : undefined;
-    await update({ data: { id, status: s, trxId } });
+    await update({ data: { id, status: s, ...(trxId ? { trxId } : {}) } });
     qc.invalidateQueries({ queryKey: ["tx"] });
   }
 
