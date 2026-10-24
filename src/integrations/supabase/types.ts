@@ -44,27 +44,83 @@ export type Database = {
         }
         Relationships: []
       }
+      gateway_devices: {
+        Row: {
+          api_key_id: string | null
+          created_at: string
+          device_id: string
+          id: string
+          is_active: boolean
+          label: string | null
+          last_ip: string | null
+          last_seen_at: string | null
+          phone_number: string | null
+          platform: string
+        }
+        Insert: {
+          api_key_id?: string | null
+          created_at?: string
+          device_id: string
+          id?: string
+          is_active?: boolean
+          label?: string | null
+          last_ip?: string | null
+          last_seen_at?: string | null
+          phone_number?: string | null
+          platform?: string
+        }
+        Update: {
+          api_key_id?: string | null
+          created_at?: string
+          device_id?: string
+          id?: string
+          is_active?: boolean
+          label?: string | null
+          last_ip?: string | null
+          last_seen_at?: string | null
+          phone_number?: string | null
+          platform?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gateway_devices_api_key_id_fkey"
+            columns: ["api_key_id"]
+            isOneToOne: false
+            referencedRelation: "api_keys"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       merchants: {
         Row: {
+          account_number: string | null
+          callback_secret: string | null
           created_at: string
           id: string
           is_active: boolean
           nagad_number: string
           name: string
+          provider: string
         }
         Insert: {
+          account_number?: string | null
+          callback_secret?: string | null
           created_at?: string
           id?: string
           is_active?: boolean
           nagad_number: string
           name: string
+          provider?: string
         }
         Update: {
+          account_number?: string | null
+          callback_secret?: string | null
           created_at?: string
           id?: string
           is_active?: boolean
           nagad_number?: string
           name?: string
+          provider?: string
         }
         Relationships: []
       }
@@ -136,38 +192,55 @@ export type Database = {
       sms_transactions: {
         Row: {
           account_number: string | null
+          account_type: string | null
           amount: number | null
           body: string
           created_at: string
           device_id: string | null
           id: string
+          matched_payment_id: string | null
+          provider: string | null
           received_at: string
           sender: string
           trx_id: string | null
         }
         Insert: {
           account_number?: string | null
+          account_type?: string | null
           amount?: number | null
           body: string
           created_at?: string
           device_id?: string | null
           id?: string
+          matched_payment_id?: string | null
+          provider?: string | null
           received_at?: string
           sender: string
           trx_id?: string | null
         }
         Update: {
           account_number?: string | null
+          account_type?: string | null
           amount?: number | null
           body?: string
           created_at?: string
           device_id?: string | null
           id?: string
+          matched_payment_id?: string | null
+          provider?: string | null
           received_at?: string
           sender?: string
           trx_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "sms_transactions_matched_payment_id_fkey"
+            columns: ["matched_payment_id"]
+            isOneToOne: false
+            referencedRelation: "payments"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
