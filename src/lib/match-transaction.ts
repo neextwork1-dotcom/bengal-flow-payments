@@ -33,7 +33,7 @@ export function extractTrxIdFromSms(body: string): string | null {
 export function extractAmountFromSms(body: string): number | null {
   const m = body.match(/(?:BDT|Tk\.?|৳)\s*([\d,]+(?:\.\d{1,2})?)/i);
   if (!m) return null;
-  const value = Number(m[1].replace(/,/g, ""));
+  const value = Number((m[1] ?? "").replace(/,/g, ""));
   return Number.isFinite(value) ? value : null;
 }
 

@@ -112,7 +112,9 @@ export const Route = createFileRoute("/api/public/gateway/ingest")({
         // Auto-match credit SMS to pending payments.
         let matched = 0;
         for (let i = 0; i < fresh.length; i++) {
-          const { parsed } = fresh[i];
+          const entry = fresh[i];
+          if (!entry) continue;
+          const { parsed } = entry;
           if (!parsed.isCredit || !parsed.trxId || parsed.amount == null) continue;
           const { data: pending } = await supabaseAdmin
             .from("payments")
@@ -157,7 +159,7 @@ export const Route = createFileRoute("/api/public/gateway/ingest")({
             await supabaseAdmin
               .from("sms_transactions")
               .update({ matched_payment_id: payment["id"] })
-              .eq("id", insertedIds[i]);
+              .eq("id", insertedIds[i] as string);
           }
 
           const callbackStatus = await sendPaymentCallback({
