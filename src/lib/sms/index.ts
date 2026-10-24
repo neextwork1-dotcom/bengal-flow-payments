@@ -156,7 +156,7 @@ export function parseSms(sender: string, body: string): ParsedSms | null {
     if (counterparty) confidence += 0.05;
     if (balance != null) confidence += 0.05;
     return { provider, confidence, strength };
-  }).sort((a, b) => b.confidence - a.confidence)[0];
+  }).sort((a, b) => b.confidence - a.confidence)[0]!;
 
   return {
     provider: best.provider,
