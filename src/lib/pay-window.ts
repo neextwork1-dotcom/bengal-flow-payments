@@ -65,7 +65,7 @@ export async function verifyTrx(paymentId: string, trxId: string): Promise<Verif
     }
     return {
       status: (json.status as VerifyResult["status"]) ?? "invalid",
-      redirectUrl: json.redirectUrl,
+      redirectUrl: json.redirectUrl ?? null,
       message: json.message,
     };
   } catch {
