@@ -73,7 +73,7 @@ function toNumber(raw: string): number | null {
 export function extractAmountFromSms(body: string): number | null {
   let fallback: number | null = null;
   for (const m of body.matchAll(MONEY_RE)) {
-    const value = toNumber(m[1]);
+    const value = toNumber(m[1] ?? "");
     if (value == null) continue;
     const start = m.index ?? 0;
     const before = body.slice(Math.max(0, start - 28), start).toLowerCase();
@@ -98,7 +98,7 @@ export function extractTrxIdFromSms(body: string): string | null {
 
 export function extractBalanceFromSms(body: string): number | null {
   const m = body.match(BALANCE_RE);
-  return m ? toNumber(m[1]) : null;
+  return m ? toNumber(m[1] ?? "") : null;
 }
 
 /** Normalize +8801XXXXXXXXX / 8801XXXXXXXXX / 1XXXXXXXXX → 01XXXXXXXXX. */
@@ -111,7 +111,7 @@ export function normalizePhone(value: string): string | null {
 
 export function extractCounterpartyFromSms(body: string): string | null {
   const m = body.match(COUNTERPARTY_RE);
-  return m ? normalizePhone(m[1]) : null;
+  return m ? normalizePhone(m[1] ?? "") : null;
 }
 
 export function extractAccountNumberFromSms(body: string): string | null {

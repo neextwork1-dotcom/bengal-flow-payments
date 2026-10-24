@@ -5,7 +5,7 @@ import {
   isValidTrxIdInput,
   matchSmsToPayment,
   normalizeTrxId,
-} from "./match-transaction";
+} from "@/lib/match-transaction";
 
 describe("normalizeTrxId", () => {
   it("uppercases and strips spaces and dashes", () => {
@@ -80,11 +80,7 @@ describe("matchSmsToPayment — strict rules", () => {
         payment,
         merchant,
       ).reason,
-    ).toBe("trx_mismatch" === "never" ? "match" : matchSmsToPayment(
-        { trx_id: "zzz999", amount: 500, account_number: merchant, body: "" },
-        payment,
-        merchant,
-      ).reason);
+    ).toBe("trx_mismatch");
   });
 
   it("falls back to parsing the SMS body when fields are missing", () => {
