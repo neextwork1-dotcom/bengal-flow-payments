@@ -5,6 +5,10 @@ import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { listMerchants, saveMerchant, saveMerchantAccount } from "@/lib/serverfns/admin";
+import type { Database } from "@/integrations/supabase/types";
+
+type MerchantAccount = Database["public"]["Tables"]["merchant_accounts"]["Row"];
+type Merchant = Database["public"]["Tables"]["merchants"]["Row"] & { merchant_accounts: MerchantAccount[] };
 
 export const Route = createFileRoute("/_authenticated/admin/merchants")({
   head: () => brandHead("Merchants", "Manage merchants in the Neext Pay payment gateway."),
@@ -16,7 +20,7 @@ function Merchants() {
   const save = useServerFn(saveMerchant);
   const saveAccount = useServerFn(saveMerchantAccount);
   const qc = useQueryClient();
-  const { data } = useQuery({ queryKey: ["merchants"], queryFn: () => list() });
+  const { data } = useQuery<Merchant[]>({ queryKey: ["merchants"], queryFn: () => list() });
   const [form, setForm] = useState({ name: "", provider: "nagad", accountNumber: "" });
   const [err, setErr] = useState("");
 
@@ -33,7 +37,7 @@ function Merchants() {
     }
   }
 
-  async function toggle(m: NonNullable<typeof data>[number]) {
+  async function toggle(m: Merchant) {
     setErr("");
     try {
       await save({ data: { id: m.id, name: m.name, logoUrl: m.logo_url ?? "", isActive: !m.is_active } });
