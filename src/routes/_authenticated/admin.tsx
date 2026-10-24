@@ -1,3 +1,5 @@
+import { NeextBrand } from "@/components/neext-brand";
+import { Button } from "@/components/ui/button";
 import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -26,10 +28,7 @@ function AdminLayout() {
     <div className="flex min-h-screen bg-background">
       <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col bg-sidebar text-sidebar-foreground md:flex">
         <div className="flex items-center gap-2 px-5 py-6">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-nagad text-base font-bold text-primary-foreground">
-            N
-          </div>
-          <span className="text-lg font-bold">NagadPay</span>
+          <NeextBrand />
         </div>
         <nav className="flex-1 space-y-1 px-3">
           {NAV.map((item) => {
@@ -43,8 +42,8 @@ function AdminLayout() {
                 to={item.to}
                 className={
                   active
-                    ? "block rounded-xl bg-sidebar-accent px-3 py-2.5 text-sm font-semibold text-sidebar-foreground"
-                    : "block rounded-xl px-3 py-2.5 text-sm text-sidebar-foreground/70 transition-colors hover:bg-sidebar-accent/60 hover:text-sidebar-foreground"
+                    ? "block rounded-lg bg-sidebar-accent px-3 py-2.5 text-sm font-semibold text-sidebar-foreground"
+                    : "block rounded-lg px-3 py-2.5 text-sm text-sidebar-foreground/70 transition-colors hover:bg-sidebar-accent/60 hover:text-sidebar-foreground"
                 }
               >
                 {item.label}
@@ -53,31 +52,28 @@ function AdminLayout() {
           })}
         </nav>
         <div className="border-t border-sidebar-border p-3">
-          <button
+          <Button
             type="button"
             onClick={signOut}
-            className="w-full rounded-xl px-3 py-2.5 text-left text-sm text-sidebar-foreground/70 transition-colors hover:bg-sidebar-accent/60 hover:text-sidebar-foreground"
+            className="w-full rounded-lg px-3 py-2.5 text-left text-sm text-sidebar-foreground/70 transition-colors hover:bg-sidebar-accent/60 hover:text-sidebar-foreground"
           >
             Sign out
-          </button>
+          </Button>
         </div>
       </aside>
 
-      <div className="flex-1">
+      <div className="min-w-0 flex-1">
         <header className="flex items-center justify-between border-b border-border bg-card px-6 py-3 md:hidden">
           <div className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-nagad text-sm font-bold text-primary-foreground">
-              N
-            </div>
-            <span className="font-bold">NagadPay</span>
+            <NeextBrand />
           </div>
-          <button
+          <Button
             type="button"
             onClick={signOut}
             className="text-sm text-muted-foreground"
           >
             Sign out
-          </button>
+          </Button>
         </header>
         <nav className="flex gap-1 overflow-x-auto border-b border-border bg-card px-4 py-2 md:hidden">
           {NAV.map((item) => {
