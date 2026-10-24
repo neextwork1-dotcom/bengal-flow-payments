@@ -4,7 +4,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { listMerchants, saveMerchant } from "@/lib/serverfns/admin";
+import { listMerchants, saveMerchant, saveMerchantAccount } from "@/lib/serverfns/admin";
 
 export const Route = createFileRoute("/_authenticated/admin/merchants")({
   head: () => brandHead("Merchants", "Manage merchants in the Neext Pay payment gateway."),
@@ -14,6 +14,7 @@ export const Route = createFileRoute("/_authenticated/admin/merchants")({
 function Merchants() {
   const list = useServerFn(listMerchants);
   const save = useServerFn(saveMerchant);
+  const saveAccount = useServerFn(saveMerchantAccount);
   const qc = useQueryClient();
   const { data } = useQuery({ queryKey: ["merchants"], queryFn: () => list() });
   const [form, setForm] = useState({ name: "", provider: "nagad", accountNumber: "" });
@@ -23,7 +24,8 @@ function Merchants() {
     e.preventDefault();
     setErr("");
     try {
-      await save({ data: form });
+      const merchant = await save({ data: { name: form.name } });
+      await saveAccount({ data: { merchantId: merchant.id, provider: form.provider, accountNumber: form.accountNumber, accountType: "merchant" } });
       setForm({ name: "", provider: "nagad", accountNumber: "" });
       qc.invalidateQueries({ queryKey: ["merchants"] });
     } catch (x) {
@@ -31,9 +33,14 @@ function Merchants() {
     }
   }
 
-  async function toggle(m: any) {
-    await save({ data: { id: m.id, name: m.name, provider: m.provider, accountNumber: m.account_number, isActive: !m.is_active } });
-    qc.invalidateQueries({ queryKey: ["merchants"] });
+  async function toggle(m: NonNullable<typeof data>[number]) {
+    setErr("");
+    try {
+      await save({ data: { id: m.id, name: m.name, logoUrl: m.logo_url ?? "", isActive: !m.is_active } });
+      await qc.invalidateQueries({ queryKey: ["merchants"] });
+    } catch (x) {
+      setErr((x as Error).message);
+    }
   }
 
   const input = "rounded-lg border border-input bg-background px-3 py-2 text-sm";
@@ -50,11 +57,14 @@ function Merchants() {
         {err && <p className="w-full text-sm text-destructive">{err}</p>}
       </form>
       <div className="rounded-lg border border-border bg-card">
-        {(data ?? []).map((m: any) => (
+        {(data ?? []).map((m) => (
           <div key={m.id} className="flex flex-wrap items-center justify-between gap-2 border-b border-border p-4 last:border-0">
             <div>
-              <p className="font-semibold">{m.name} <span className="text-xs uppercase text-muted-foreground">{m.provider}</span></p>
-              <p className="text-sm text-muted-foreground">{m.account_number} · ID {m.id}</p>
+              <p className="font-semibold">{m.name}</p>
+              {m.merchant_accounts.map((account) => (
+                <p key={account.id} className="text-sm text-muted-foreground"><span className="uppercase">{account.provider}</span> · {account.account_number} · {account.account_type}</p>
+              ))}
+              <p className="text-sm text-muted-foreground">ID {m.id}</p>
               <p className="font-mono text-xs text-muted-foreground">Callback secret: {m.callback_secret}</p>
             </div>
             <Button onClick={() => toggle(m)} className="text-sm text-primary">{m.is_active ? "Deactivate" : "Activate"}</Button>
