@@ -14,6 +14,11 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as PayIdRouteImport } from './routes/pay.$id'
+import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
+import { Route as AuthenticatedAdminApiKeysRouteImport } from './routes/_authenticated/admin.api-keys'
+import { Route as AuthenticatedAdminLinksRouteImport } from './routes/_authenticated/admin.links'
+import { Route as AuthenticatedAdminMerchantsRouteImport } from './routes/_authenticated/admin.merchants'
+import { Route as AuthenticatedAdminTransactionsRouteImport } from './routes/_authenticated/admin.transactions'
 import { Route as ApiPublicGatewayIngestRouteImport } from './routes/api/public/gateway/ingest'
 import { Route as ApiPublicPayIdRouteImport } from './routes/api/public/pay/$id'
 import { Route as ApiPublicPaymentsCreateRouteImport } from './routes/api/public/payments/create'
@@ -43,6 +48,34 @@ const PayIdRoute = PayIdRouteImport.update({
   path: '/pay/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthenticatedAdminRoute,
+} as any)
+const AuthenticatedAdminApiKeysRoute =
+  AuthenticatedAdminApiKeysRouteImport.update({
+    id: '/api-keys',
+    path: '/api-keys',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminLinksRoute = AuthenticatedAdminLinksRouteImport.update({
+  id: '/links',
+  path: '/links',
+  getParentRoute: () => AuthenticatedAdminRoute,
+} as any)
+const AuthenticatedAdminMerchantsRoute =
+  AuthenticatedAdminMerchantsRouteImport.update({
+    id: '/merchants',
+    path: '/merchants',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminTransactionsRoute =
+  AuthenticatedAdminTransactionsRouteImport.update({
+    id: '/transactions',
+    path: '/transactions',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const ApiPublicGatewayIngestRoute = ApiPublicGatewayIngestRouteImport.update({
   id: '/api/public/gateway/ingest',
   path: '/api/public/gateway/ingest',
@@ -67,8 +100,13 @@ const ApiPublicPaymentsVerifyRoute = ApiPublicPaymentsVerifyRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
-  '/admin': typeof AuthenticatedAdminRoute
+  '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/pay/$id': typeof PayIdRoute
+  '/admin/api-keys': typeof AuthenticatedAdminApiKeysRoute
+  '/admin/links': typeof AuthenticatedAdminLinksRoute
+  '/admin/merchants': typeof AuthenticatedAdminMerchantsRoute
+  '/admin/transactions': typeof AuthenticatedAdminTransactionsRoute
+  '/admin/': typeof AuthenticatedAdminIndexRoute
   '/api/public/gateway/ingest': typeof ApiPublicGatewayIngestRoute
   '/api/public/pay/$id': typeof ApiPublicPayIdRoute
   '/api/public/payments/create': typeof ApiPublicPaymentsCreateRoute
@@ -77,8 +115,12 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
-  '/admin': typeof AuthenticatedAdminRoute
   '/pay/$id': typeof PayIdRoute
+  '/admin/api-keys': typeof AuthenticatedAdminApiKeysRoute
+  '/admin/links': typeof AuthenticatedAdminLinksRoute
+  '/admin/merchants': typeof AuthenticatedAdminMerchantsRoute
+  '/admin/transactions': typeof AuthenticatedAdminTransactionsRoute
+  '/admin': typeof AuthenticatedAdminIndexRoute
   '/api/public/gateway/ingest': typeof ApiPublicGatewayIngestRoute
   '/api/public/pay/$id': typeof ApiPublicPayIdRoute
   '/api/public/payments/create': typeof ApiPublicPaymentsCreateRoute
@@ -89,8 +131,13 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
-  '/_authenticated/admin': typeof AuthenticatedAdminRoute
+  '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/pay/$id': typeof PayIdRoute
+  '/_authenticated/admin/api-keys': typeof AuthenticatedAdminApiKeysRoute
+  '/_authenticated/admin/links': typeof AuthenticatedAdminLinksRoute
+  '/_authenticated/admin/merchants': typeof AuthenticatedAdminMerchantsRoute
+  '/_authenticated/admin/transactions': typeof AuthenticatedAdminTransactionsRoute
+  '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/api/public/gateway/ingest': typeof ApiPublicGatewayIngestRoute
   '/api/public/pay/$id': typeof ApiPublicPayIdRoute
   '/api/public/payments/create': typeof ApiPublicPaymentsCreateRoute
@@ -103,6 +150,11 @@ export interface FileRouteTypes {
     | '/auth'
     | '/admin'
     | '/pay/$id'
+    | '/admin/api-keys'
+    | '/admin/links'
+    | '/admin/merchants'
+    | '/admin/transactions'
+    | '/admin/'
     | '/api/public/gateway/ingest'
     | '/api/public/pay/$id'
     | '/api/public/payments/create'
@@ -111,8 +163,12 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
-    | '/admin'
     | '/pay/$id'
+    | '/admin/api-keys'
+    | '/admin/links'
+    | '/admin/merchants'
+    | '/admin/transactions'
+    | '/admin'
     | '/api/public/gateway/ingest'
     | '/api/public/pay/$id'
     | '/api/public/payments/create'
@@ -124,6 +180,11 @@ export interface FileRouteTypes {
     | '/auth'
     | '/_authenticated/admin'
     | '/pay/$id'
+    | '/_authenticated/admin/api-keys'
+    | '/_authenticated/admin/links'
+    | '/_authenticated/admin/merchants'
+    | '/_authenticated/admin/transactions'
+    | '/_authenticated/admin/'
     | '/api/public/gateway/ingest'
     | '/api/public/pay/$id'
     | '/api/public/payments/create'
@@ -178,6 +239,41 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PayIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/admin/': {
+      id: '/_authenticated/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AuthenticatedAdminIndexRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/api-keys': {
+      id: '/_authenticated/admin/api-keys'
+      path: '/api-keys'
+      fullPath: '/admin/api-keys'
+      preLoaderRoute: typeof AuthenticatedAdminApiKeysRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/links': {
+      id: '/_authenticated/admin/links'
+      path: '/links'
+      fullPath: '/admin/links'
+      preLoaderRoute: typeof AuthenticatedAdminLinksRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/merchants': {
+      id: '/_authenticated/admin/merchants'
+      path: '/merchants'
+      fullPath: '/admin/merchants'
+      preLoaderRoute: typeof AuthenticatedAdminMerchantsRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/transactions': {
+      id: '/_authenticated/admin/transactions'
+      path: '/transactions'
+      fullPath: '/admin/transactions'
+      preLoaderRoute: typeof AuthenticatedAdminTransactionsRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/api/public/gateway/ingest': {
       id: '/api/public/gateway/ingest'
       path: '/api/public/gateway/ingest'
@@ -209,12 +305,31 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AuthenticatedAdminRouteChildren {
+  AuthenticatedAdminApiKeysRoute: typeof AuthenticatedAdminApiKeysRoute
+  AuthenticatedAdminLinksRoute: typeof AuthenticatedAdminLinksRoute
+  AuthenticatedAdminMerchantsRoute: typeof AuthenticatedAdminMerchantsRoute
+  AuthenticatedAdminTransactionsRoute: typeof AuthenticatedAdminTransactionsRoute
+  AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
+}
+
+const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
+  AuthenticatedAdminApiKeysRoute: AuthenticatedAdminApiKeysRoute,
+  AuthenticatedAdminLinksRoute: AuthenticatedAdminLinksRoute,
+  AuthenticatedAdminMerchantsRoute: AuthenticatedAdminMerchantsRoute,
+  AuthenticatedAdminTransactionsRoute: AuthenticatedAdminTransactionsRoute,
+  AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
+}
+
+const AuthenticatedAdminRouteWithChildren =
+  AuthenticatedAdminRoute._addFileChildren(AuthenticatedAdminRouteChildren)
+
 interface AuthenticatedRouteRouteChildren {
-  AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
+  AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
-  AuthenticatedAdminRoute: AuthenticatedAdminRoute,
+  AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
 }
 
 const AuthenticatedRouteRouteWithChildren =
