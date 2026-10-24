@@ -248,6 +248,7 @@ export type Database = {
           created_at: string
           device_id: string | null
           id: string
+          is_credit: boolean
           matched_payment_id: string | null
           provider: string | null
           received_at: string
@@ -262,6 +263,7 @@ export type Database = {
           created_at?: string
           device_id?: string | null
           id?: string
+          is_credit?: boolean
           matched_payment_id?: string | null
           provider?: string | null
           received_at?: string
@@ -276,6 +278,7 @@ export type Database = {
           created_at?: string
           device_id?: string | null
           id?: string
+          is_credit?: boolean
           matched_payment_id?: string | null
           provider?: string | null
           received_at?: string
@@ -315,6 +318,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      claim_payment_sms: {
+        Args: { p_payment: string; p_sms: string }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
