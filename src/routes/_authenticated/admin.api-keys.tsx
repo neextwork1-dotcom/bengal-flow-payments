@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { createApiKey, deleteApiKey, listApiKeys, listGateway, toggleApiKey } from "@/server/admin";
+import { createApiKey, deleteApiKey, listApiKeys, listGateway, toggleApiKey } from "@/lib/serverfns/admin";
 
 export const Route = createFileRoute("/_authenticated/admin/api-keys")({
   head: () => ({ meta: [{ title: "API keys — NagadPay Admin" }] }),

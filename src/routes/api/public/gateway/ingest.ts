@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import { parseSms, normalizePhone } from "@/lib/sms";
 import { normalizeAccountNumber } from "@/lib/match-transaction";
-import { authenticateApiKey, sendPaymentCallback } from "@/server/gateway.server";
+import { authenticateApiKey, sendPaymentCallback } from "@/lib/serverfns/gateway";
 
 /**
  * SMS gateway ingest — called by the Android SMS-reader app.

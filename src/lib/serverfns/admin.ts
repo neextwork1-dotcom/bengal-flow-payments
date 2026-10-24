@@ -116,7 +116,7 @@ export const updatePaymentStatus = createServerFn({ method: "POST" })
         .eq("id", data.id)
         .maybeSingle();
       if (payment?.["callback_url"]) {
-        const { sendPaymentCallback } = await import("@/server/gateway.server");
+        const { sendPaymentCallback } = await import("@/lib/serverfns/gateway");
         const callbackStatus = await sendPaymentCallback({
           id: payment["id"],
           order_id: payment["order_id"],
