@@ -49,7 +49,7 @@ const CREDIT_RE =
   /\b(?:received|credited|cash[- ]?in|payment\s+received|got\s+(?:Tk|BDT|Taka|৳)|added)\b/i;
 const DEBIT_RE =
   /\b(?:sent|cash[- ]?out|withdraw|payment\s+to|paid\s+to|transfer(?:red)?\s+to)\b/i;
-const MERCHANT_RE = /\bmerchant\b/i;
+const MERCHANT_RE = /\bmerchant\b|\bpayment\s+received\b/i;
 const AGENT_RE = /\bagent\b/i;
 
 const MONEY_RE = /(?:BDT|Tk\.?|Taka|৳)\s*([\d,]+(?:\.\d{1,2})?)/gi;

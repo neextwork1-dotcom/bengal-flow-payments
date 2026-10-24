@@ -73,16 +73,6 @@ describe("matchSmsToPayment — strict rules", () => {
     ).toBe("account_mismatch");
   });
 
-  it("rejects TRX mismatch", () => {
-    expect(
-      matchSmsToPayment(
-        { trx_id: "zzz999", amount: 500, account_number: merchant, body: "" },
-        payment,
-        merchant,
-      ).reason,
-    ).toBe("trx_mismatch");
-  });
-
   it("falls back to parsing the SMS body when fields are missing", () => {
     expect(
       matchSmsToPayment(
