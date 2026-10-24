@@ -105,7 +105,7 @@ function ProviderPayPage() {
       <div className="flex min-h-screen items-center justify-center bg-[#F3F7FC] px-4">
         <div className="w-full max-w-sm rounded-3xl bg-white p-8 text-center shadow-xl">
           <p className="text-sm text-destructive">Unknown payment method.</p>
-          <Link to="/pay/$id/" params={{ id }} className="mt-3 inline-block text-sm font-medium text-primary">
+          <Link to="/pay/$id" params={{ id }} className="mt-3 inline-block text-sm font-medium text-primary">
             ← Back to checkout
           </Link>
         </div>
@@ -145,7 +145,7 @@ function ProviderPayPage() {
               {brand.label} এই পেমেন্টের জন্য সক্রিয় নয়।
             </p>
             <Link
-              to="/pay/$id/"
+              to="/pay/$id"
               params={{ id }}
               className="mt-3 inline-block text-sm font-medium text-primary"
             >
@@ -258,7 +258,7 @@ function ProviderPayPage() {
             </button>
 
             <Link
-              to="/pay/$id/"
+              to="/pay/$id"
               params={{ id }}
               className="mt-3 block text-center text-xs font-medium"
               style={{ color: brand.color }}

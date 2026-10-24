@@ -44,7 +44,7 @@ export async function fetchPayWindow(id: string): Promise<FetchResult> {
 export type VerifyResult = {
   status: "complete" | "pending" | "invalid";
   redirectUrl?: string | null;
-  message?: string;
+  message?: string | undefined;
 };
 
 export async function verifyTrx(paymentId: string, trxId: string): Promise<VerifyResult> {
