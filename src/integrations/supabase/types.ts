@@ -91,6 +91,44 @@ export type Database = {
           },
         ]
       }
+      merchant_accounts: {
+        Row: {
+          account_number: string
+          account_type: string
+          created_at: string
+          id: string
+          is_active: boolean
+          merchant_id: string
+          provider: string
+        }
+        Insert: {
+          account_number: string
+          account_type?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          merchant_id: string
+          provider: string
+        }
+        Update: {
+          account_number?: string
+          account_type?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          merchant_id?: string
+          provider?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "merchant_accounts_merchant_id_fkey"
+            columns: ["merchant_id"]
+            isOneToOne: false
+            referencedRelation: "merchants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       merchants: {
         Row: {
           account_number: string | null
@@ -98,6 +136,7 @@ export type Database = {
           created_at: string
           id: string
           is_active: boolean
+          logo_url: string | null
           nagad_number: string
           name: string
           provider: string
@@ -108,6 +147,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_active?: boolean
+          logo_url?: string | null
           nagad_number: string
           name: string
           provider?: string
@@ -118,6 +158,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_active?: boolean
+          logo_url?: string | null
           nagad_number?: string
           name?: string
           provider?: string
@@ -126,6 +167,8 @@ export type Database = {
       }
       payments: {
         Row: {
+          account_number: string | null
+          account_type: string | null
           amount: number
           callback_sent_at: string | null
           callback_status: string | null
@@ -137,6 +180,7 @@ export type Database = {
           merchant_id: string
           metadata: Json
           order_id: string | null
+          provider: string | null
           redirect_url: string | null
           status: string
           trx_id: string | null
@@ -144,6 +188,8 @@ export type Database = {
           verified_at: string | null
         }
         Insert: {
+          account_number?: string | null
+          account_type?: string | null
           amount: number
           callback_sent_at?: string | null
           callback_status?: string | null
@@ -155,6 +201,7 @@ export type Database = {
           merchant_id: string
           metadata?: Json
           order_id?: string | null
+          provider?: string | null
           redirect_url?: string | null
           status?: string
           trx_id?: string | null
@@ -162,6 +209,8 @@ export type Database = {
           verified_at?: string | null
         }
         Update: {
+          account_number?: string | null
+          account_type?: string | null
           amount?: number
           callback_sent_at?: string | null
           callback_status?: string | null
@@ -173,6 +222,7 @@ export type Database = {
           merchant_id?: string
           metadata?: Json
           order_id?: string | null
+          provider?: string | null
           redirect_url?: string | null
           status?: string
           trx_id?: string | null
