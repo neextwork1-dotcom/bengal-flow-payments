@@ -128,11 +128,13 @@ export const Route = createFileRoute("/api/public/gateway/ingest")({
 
           const payment = (pending ?? []).find((p) => {
             const merchant = Array.isArray(p["merchants"]) ? p["merchants"][0] : p["merchants"];
-            if (merchant?.["provider"] && merchant["provider"] !== parsed.provider) return false;
+            const payProvider = p["provider"] ?? merchant?.["provider"] ?? null;
+            if (payProvider && payProvider !== parsed.provider) return false;
+            const payAccount = p["account_number"] ?? merchant?.["account_number"] ?? null;
             if (
-              merchant?.["account_number"] &&
+              payAccount &&
               parsed.accountNumber &&
-              normalizeAccountNumber(String(merchant["account_number"])) !==
+              normalizeAccountNumber(String(payAccount)) !==
                 normalizeAccountNumber(parsed.accountNumber)
             ) {
               return false;
