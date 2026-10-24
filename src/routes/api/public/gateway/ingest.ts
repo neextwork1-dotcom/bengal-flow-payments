@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import { parseSms, normalizePhone } from "@/lib/sms";
 import { normalizeAccountNumber } from "@/lib/match-transaction";
-import { authenticateApiKey, sendPaymentCallback } from "@/server/gateway.server";
+import { authenticateApiKey, sendPaymentCallback } from "@/lib/serverfns/gateway";
 
 /**
  * SMS gateway ingest — called by the Android SMS-reader app.
@@ -119,7 +119,7 @@ export const Route = createFileRoute("/api/public/gateway/ingest")({
           const { data: pending } = await supabaseAdmin
             .from("payments")
             .select(
-              "id, amount, order_id, status, callback_url, trx_id, verified_at, merchants(name, provider, account_number, callback_secret)",
+              "id, amount, order_id, status, callback_url, trx_id, verified_at, provider, account_number, account_type, merchants(name, provider, account_number, callback_secret)",
             )
             .eq("status", "pending")
             .eq("amount", parsed.amount)
@@ -128,11 +128,13 @@ export const Route = createFileRoute("/api/public/gateway/ingest")({
 
           const payment = (pending ?? []).find((p) => {
             const merchant = Array.isArray(p["merchants"]) ? p["merchants"][0] : p["merchants"];
-            if (merchant?.["provider"] && merchant["provider"] !== parsed.provider) return false;
+            const payProvider = p["provider"] ?? merchant?.["provider"] ?? null;
+            if (payProvider && payProvider !== parsed.provider) return false;
+            const payAccount = p["account_number"] ?? merchant?.["account_number"] ?? null;
             if (
-              merchant?.["account_number"] &&
+              payAccount &&
               parsed.accountNumber &&
-              normalizeAccountNumber(String(merchant["account_number"])) !==
+              normalizeAccountNumber(String(payAccount)) !==
                 normalizeAccountNumber(parsed.accountNumber)
             ) {
               return false;

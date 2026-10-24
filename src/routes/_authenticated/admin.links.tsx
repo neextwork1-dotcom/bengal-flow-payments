@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { createPaymentLink, listMerchants } from "@/server/admin";
+import { createPaymentLink, listMerchants } from "@/lib/serverfns/admin";
 
 export const Route = createFileRoute("/_authenticated/admin/links")({
   head: () => ({ meta: [{ title: "Payment links — NagadPay Admin" }] }),
@@ -35,7 +35,7 @@ function Links() {
       <form onSubmit={submit} className="space-y-3 rounded-xl border border-border bg-card p-4">
         <select required value={form.merchantId} onChange={(e) => setForm({ ...form, merchantId: e.target.value })} className={input}>
           <option value="">Select merchant</option>
-          {(merchants ?? []).map((m: any) => <option key={m.id} value={m.id}>{m.name} ({m.provider})</option>)}
+          {(merchants ?? []).map((m: any) => <option key={m.id} value={m.id}>{m.name}</option>)}
         </select>
         <input required type="number" min="1" step="0.01" placeholder="Amount (৳)" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} className={input} />
         <input placeholder="Order ID" value={form.orderId} onChange={(e) => setForm({ ...form, orderId: e.target.value })} className={input} />

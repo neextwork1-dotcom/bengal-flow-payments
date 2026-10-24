@@ -1,6 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { sendPaymentCallback } from "@/server/gateway.server";
 
 type Ctx = {
   supabase: any;
@@ -117,6 +116,7 @@ export const updatePaymentStatus = createServerFn({ method: "POST" })
         .eq("id", data.id)
         .maybeSingle();
       if (payment?.["callback_url"]) {
+        const { sendPaymentCallback } = await import("@/lib/serverfns/gateway");
         const callbackStatus = await sendPaymentCallback({
           id: payment["id"],
           order_id: payment["order_id"],

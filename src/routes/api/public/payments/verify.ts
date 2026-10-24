@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import { isValidTrxIdInput } from "@/lib/match-transaction";
 import { normalizeAccountNumber, normalizeTrxId } from "@/lib/match-transaction";
-import { sendPaymentCallback } from "@/server/gateway.server";
+import { sendPaymentCallback } from "@/lib/serverfns/gateway";
 
 /**
  * Customer-facing TRX verification from the payment window.
