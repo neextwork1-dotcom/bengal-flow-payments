@@ -47,6 +47,7 @@ export type CallbackPayment = {
   callback_url: string | null;
   trx_id?: string | null;
   verified_at?: string | null;
+  provider?: string | null;
   merchants?: MerchantInfo | MerchantInfo[] | null;
 };
 
@@ -66,19 +67,20 @@ export async function sendPaymentCallback(payment: CallbackPayment): Promise<str
     orderId: payment.order_id,
     amount: Number(payment.amount),
     trxId: payment.trx_id ?? null,
-    provider: merchant?.provider ?? "nagad",
+    provider: payment.provider ?? merchant?.provider ?? "nagad",
     status: "complete",
     verifiedAt: payment.verified_at ?? new Date().toISOString(),
   };
   const raw = JSON.stringify(payload);
   const headers: Record<string, string> = { "content-type": "application/json" };
   if (merchant?.callback_secret) {
-    headers["x-nagadpay-signature"] =
+    headers["x-neextpay-signature"] =
       "sha256=" +
       createHmac("sha256", merchant.callback_secret).update(raw).digest("hex");
   }
   try {
     const res = await fetch(payment.callback_url, {
+      redirect: "error",
       method: "POST",
       headers,
       body: raw,

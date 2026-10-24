@@ -74,10 +74,13 @@ export const Route = createFileRoute("/api/public/payments/create")({
           merchantId = merchant["id"] as string;
         }
 
+        if (!merchantId) return Response.json({ error: "Merchant is required" }, { status: 400 });
+        const { data: accounts } = await supabaseAdmin.from("merchant_accounts").select("id").eq("merchant_id", merchantId).eq("is_active", true);
+        if (!accounts?.length) return Response.json({ error: "No active collection account" }, { status: 400 });
         const { data: created, error } = await supabaseAdmin
           .from("payments")
           .insert({
-            merchant_id: merchantId!,
+            merchant_id: merchantId,
             amount: input.amount,
             order_id: input.orderId?.trim() || null,
             customer_name: input.customerName?.trim() || null,

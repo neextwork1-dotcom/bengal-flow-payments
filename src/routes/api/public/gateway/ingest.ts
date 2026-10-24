@@ -1,7 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import { parseSms, normalizePhone } from "@/lib/sms";
-import { normalizeAccountNumber } from "@/lib/match-transaction";
 import { authenticateApiKey, sendPaymentCallback } from "@/lib/serverfns/gateway";
 
 /**
@@ -63,24 +62,17 @@ export const Route = createFileRoute("/api/public/gateway/ingest")({
           { onConflict: "device_id" },
         );
 
-        const parsedRows = input.messages
-          .map((m) => ({ message: m, parsed: parseSms(m.sender, m.body) }))
-          .filter((x) => x.parsed != null)
-          .map(({ message, parsed }) => ({
-            parsed: parsed!,
-            row: {
-              sender: message.sender,
-              body: message.body,
-              provider: parsed!.provider,
-              account_type: parsed!.accountType,
-              trx_id: parsed!.trxId,
-              amount: parsed!.amount,
-              account_number: parsed!.accountNumber,
-              device_id: input.deviceId,
-              received_at: message.receivedAt ?? now,
-            },
-          }));
-
+        const parsedRows = input.messages.flatMap((message) => {
+          const parsed = parseSms(message.sender, message.body);
+          if (!parsed || !parsed.trxId) return [];
+          const accountNumber = parsed.accountNumber ?? (input.phoneNumber ? normalizePhone(input.phoneNumber) : null);
+          return [{ parsed: { ...parsed, accountNumber }, row: {
+            sender: message.sender, body: message.body, provider: parsed.provider,
+            account_type: parsed.accountType, is_credit: parsed.isCredit,
+            trx_id: parsed.trxId, amount: parsed.amount, account_number: accountNumber,
+            device_id: input.deviceId, received_at: message.receivedAt ?? now,
+          } }];
+        });
         // Skip messages whose TRX ID was already collected (app retries / duplicates).
         const trxIds = [...new Set(parsedRows.map((r) => r.row.trx_id).filter(Boolean))] as string[];
         const seen = new Set<string>();
@@ -94,7 +86,7 @@ export const Route = createFileRoute("/api/public/gateway/ingest")({
           }
         }
         const fresh = parsedRows.filter(
-          (r) => !r.row.trx_id || !seen.has(`${r.row.provider}:${r.row.trx_id}`),
+          (r) => { const key = `${r.row.provider}:${r.row.trx_id}`; if (seen.has(key)) return false; seen.add(key); return true; },
         );
 
         let insertedIds: string[] = [];
@@ -126,44 +118,16 @@ export const Route = createFileRoute("/api/public/gateway/ingest")({
             .order("created_at", { ascending: true })
             .limit(50);
 
-          const payment = (pending ?? []).find((p) => {
-            const merchant = Array.isArray(p["merchants"]) ? p["merchants"][0] : p["merchants"];
-            const payProvider = p["provider"] ?? merchant?.["provider"] ?? null;
-            if (payProvider && payProvider !== parsed.provider) return false;
-            const payAccount = p["account_number"] ?? merchant?.["account_number"] ?? null;
-            if (
-              payAccount &&
-              parsed.accountNumber &&
-              normalizeAccountNumber(String(payAccount)) !==
-                normalizeAccountNumber(parsed.accountNumber)
-            ) {
-              return false;
-            }
-            return true;
-          });
-          if (!payment) continue;
-
-          const verifiedAt = new Date().toISOString();
-          const { error: payErr } = await supabaseAdmin
-            .from("payments")
-            .update({
-              status: "complete",
-              trx_id: parsed.trxId,
-              verified_at: verifiedAt,
-              updated_at: verifiedAt,
-            })
-            .eq("id", payment["id"] as string)
-            .eq("status", "pending");
-          if (payErr) continue;
-          matched++;
-
-          if (insertedIds[i]) {
-            await supabaseAdmin
-              .from("sms_transactions")
-              .update({ matched_payment_id: payment["id"] })
-              .eq("id", insertedIds[i] as string);
+          let payment: (typeof pending extends (infer T)[] | null ? T : never) | undefined;
+          for (const candidate of pending ?? []) {
+            const smsId = insertedIds[i];
+            if (!smsId) continue;
+            const { data: claimed } = await supabaseAdmin.rpc("claim_payment_sms", { p_payment: candidate["id"], p_sms: smsId });
+            if (claimed) { payment = candidate; break; }
           }
-
+          if (!payment) continue;
+          matched++;
+          const verifiedAt = new Date().toISOString();
           const callbackStatus = await sendPaymentCallback({
             id: payment["id"] as string,
             order_id: payment["order_id"] as string | null,
@@ -172,6 +136,7 @@ export const Route = createFileRoute("/api/public/gateway/ingest")({
             trx_id: parsed.trxId,
             verified_at: verifiedAt,
             merchants: payment["merchants"],
+            provider: parsed.provider,
           });
           await supabaseAdmin
             .from("payments")

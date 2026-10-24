@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import { isValidTrxIdInput } from "@/lib/match-transaction";
-import { normalizeAccountNumber, normalizeTrxId } from "@/lib/match-transaction";
+import { normalizeTrxId } from "@/lib/match-transaction";
 import { sendPaymentCallback } from "@/lib/serverfns/gateway";
 
 /**
@@ -40,7 +40,7 @@ export const Route = createFileRoute("/api/public/payments/verify")({
         const { data: payment } = await supabaseAdmin
           .from("payments")
           .select(
-            "id, amount, status, order_id, trx_id, callback_url, redirect_url, verified_at, merchants(name, provider, account_number, callback_secret)",
+            "id, amount, status, order_id, trx_id, callback_url, redirect_url, verified_at, provider, account_number, account_type, merchants(name, provider, account_number, callback_secret)",
           )
           .eq("id", parsedInput.data.paymentId)
           .maybeSingle();
@@ -54,7 +54,7 @@ export const Route = createFileRoute("/api/public/payments/verify")({
 
         const { data: sms } = await supabaseAdmin
           .from("sms_transactions")
-          .select("id, amount, account_number, provider, matched_payment_id")
+          .select("id, amount, account_number, provider, account_type, is_credit, matched_payment_id")
           .eq("trx_id", trx)
           .is("matched_payment_id", null)
           .order("created_at", { ascending: true })
@@ -69,60 +69,10 @@ export const Route = createFileRoute("/api/public/payments/verify")({
           });
         }
 
-        const merchant = Array.isArray(payment["merchants"])
-          ? payment["merchants"][0]
-          : payment["merchants"];
-        const payAmount = Number(payment["amount"]);
-        if (sms["amount"] == null || Math.abs(Number(sms["amount"]) - payAmount) > 0.005) {
-          return Response.json({
-            status: "invalid",
-            reason: "amount_mismatch",
-            message: "The collected amount for this TRX ID does not match this payment.",
-          });
-        }
-        if (
-          merchant?.["provider"] &&
-          sms["provider"] &&
-          merchant["provider"] !== sms["provider"]
-        ) {
-          return Response.json({
-            status: "invalid",
-            reason: "provider_mismatch",
-            message: `This TRX ID was collected on a different wallet (${sms["provider"]}).`,
-          });
-        }
-        if (
-          merchant?.["account_number"] &&
-          sms["account_number"] &&
-          normalizeAccountNumber(String(merchant["account_number"])) !==
-            normalizeAccountNumber(String(sms["account_number"]))
-        ) {
-          return Response.json({
-            status: "invalid",
-            reason: "account_mismatch",
-            message: "This TRX ID was not paid to this merchant account.",
-          });
-        }
-
+        const { data: claimed, error: claimError } = await supabaseAdmin.rpc("claim_payment_sms", { p_payment: payment["id"], p_sms: sms["id"] });
+        if (claimError) return Response.json({ error: "Verification unavailable" }, { status: 500 });
+        if (!claimed) return Response.json({ status: "invalid", message: "The amount, receiving account or payment status does not match this transaction." });
         const verifiedAt = new Date().toISOString();
-        const { error } = await supabaseAdmin
-          .from("payments")
-          .update({
-            status: "complete",
-            trx_id: trx,
-            verified_at: verifiedAt,
-            updated_at: verifiedAt,
-          })
-          .eq("id", payment["id"] as string)
-          .eq("status", "pending");
-        if (error) {
-          return Response.json({ error: String(error) }, { status: 500 });
-        }
-        await supabaseAdmin
-          .from("sms_transactions")
-          .update({ matched_payment_id: payment["id"] })
-          .eq("id", sms["id"] as string);
-
         const callbackStatus = await sendPaymentCallback({
           id: payment["id"] as string,
           order_id: payment["order_id"] as string | null,
@@ -131,6 +81,7 @@ export const Route = createFileRoute("/api/public/payments/verify")({
           trx_id: trx,
           verified_at: verifiedAt,
           merchants: payment["merchants"],
+          provider: sms["provider"],
         });
         await supabaseAdmin
           .from("payments")

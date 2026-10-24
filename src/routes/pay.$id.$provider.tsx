@@ -1,3 +1,5 @@
+import { Button } from "@/components/ui/button";
+import { NeextBrand } from "@/components/neext-brand";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { PaySuccess } from "@/components/pay-success";
@@ -20,12 +22,14 @@ export const Route = createFileRoute("/pay/$id/$provider")({
   head: ({ params }: { params: { provider: string } }) => ({
     meta: [
       {
-        title: `${PROVIDER_BRAND[isProviderId(params.provider) ? params.provider : "nagad"].label} payment — verify instantly`,
+        title: `${PROVIDER_BRAND[isProviderId(params.provider) ? params.provider : "nagad"].label} payment — Neext Pay`,
       },
       {
-        description:
+        name: "description", content:
           "Copy the number, pay from your wallet app, then enter your transaction ID to verify instantly.",
       },
+      { property: "og:title", content: "Wallet verification — Neext Pay" },
+      { property: "og:description", content: "Verify your wallet transaction securely with Neext Pay." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -102,8 +106,8 @@ function ProviderPayPage() {
 
   if (!valid) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#F3F7FC] px-4">
-        <div className="w-full max-w-sm rounded-3xl bg-white p-8 text-center shadow-xl">
+      <div className="flex min-h-screen items-center justify-center bg-background px-4">
+        <div className="w-full max-w-sm rounded-lg bg-card p-8 text-center shadow-xl">
           <p className="text-sm text-destructive">Unknown payment method.</p>
           <Link to="/pay/$id" params={{ id }} className="mt-3 inline-block text-sm font-medium text-primary">
             ← Back to checkout
@@ -115,8 +119,8 @@ function ProviderPayPage() {
 
   if (loadError) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#F3F7FC] px-4">
-        <div className="w-full max-w-sm rounded-3xl bg-white p-8 text-center shadow-xl">
+      <div className="flex min-h-screen items-center justify-center bg-background px-4">
+        <div className="w-full max-w-sm rounded-lg bg-card p-8 text-center shadow-xl">
           <p className="text-sm text-destructive">{loadError}</p>
         </div>
       </div>
@@ -130,17 +134,18 @@ function ProviderPayPage() {
   const account = info?.accounts.find((a) => a.provider === provider);
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#F3F7FC]">
+    <div className="flex min-h-screen flex-col bg-background">
       <div className="mx-auto w-full max-w-md px-4 pb-10 pt-5">
+        <div className="mb-5 flex justify-center"><NeextBrand /></div>
         {/* Provider header */}
-        <div className="flex items-center justify-center rounded-2xl bg-white py-4 shadow-sm ring-1 ring-black/5">
+        <div className="flex items-center justify-center rounded-lg bg-card py-4 shadow-sm ring-1 ring-border">
           <ProviderLogo provider={provider} className="h-10" />
         </div>
 
         {!info || phase === "loading" ? (
           <p className="py-10 text-center text-sm text-muted-foreground">Loading payment…</p>
         ) : !account ? (
-          <div className="mt-4 rounded-2xl bg-white p-6 text-center shadow-sm ring-1 ring-black/5">
+          <div className="mt-4 rounded-lg bg-card p-6 text-center shadow-sm ring-1 ring-border">
             <p className="text-sm text-muted-foreground">
               {brand.label} এই পেমেন্টের জন্য সক্রিয় নয়।
             </p>
@@ -155,10 +160,10 @@ function ProviderPayPage() {
         ) : (
           <>
             {/* Merchant card */}
-            <div className="mt-4 flex items-center gap-3 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5">
+            <div className="mt-4 flex items-center gap-3 rounded-lg bg-card p-4 shadow-sm ring-1 ring-border">
               <div
                 className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg"
-                style={{ backgroundColor: brand.softColor }}
+                
               >
                 {info.merchant.logoUrl ? (
                   <img
@@ -167,7 +172,7 @@ function ProviderPayPage() {
                     className="h-full w-full object-cover"
                   />
                 ) : (
-                  <span className="text-lg font-bold" style={{ color: brand.color }}>
+                  <span className="text-lg font-bold" >
                     {info.merchant.name.trim().charAt(0).toUpperCase() || "M"}
                   </span>
                 )}
@@ -183,7 +188,7 @@ function ProviderPayPage() {
             </div>
 
             {/* Amount box */}
-            <div className="mt-3 rounded-2xl bg-white px-4 py-3 shadow-sm ring-1 ring-black/5">
+            <div className="mt-3 rounded-lg bg-card px-4 py-3 shadow-sm ring-1 ring-border">
               <p className="text-xl font-bold tabular-nums text-foreground">
                 ৳ {formatBdt(info.amount)}
               </p>
@@ -191,36 +196,36 @@ function ProviderPayPage() {
 
             {/* Instructions panel */}
             <div
-              className="mt-4 rounded-2xl p-4 text-white shadow-md"
-              style={{ backgroundColor: brand.panelColor }}
+              className="mt-4 rounded-lg bg-primary p-4 text-primary-foreground shadow-md"
+              
             >
-              <p className="mb-3 rounded-lg bg-white/95 px-3 py-2 text-center text-sm font-semibold text-neutral-700">
+              <p className="mb-3 rounded-lg bg-card px-3 py-2 text-center text-sm font-semibold text-foreground">
                 নির্দেশনা অনুসরণ করুন
               </p>
               <ul className="space-y-2.5 text-xs leading-relaxed">
                 {buildPaySteps(provider, account.accountType, account.accountNumber, info.amount).map(
                   (step, i) => (
                     <li key={i} className="flex gap-2">
-                      <span className="mt-1 block h-1 w-1 shrink-0 rounded-full bg-white/80" />
+                      <span className="mt-1 block h-1 w-1 shrink-0 rounded-full bg-card/80" />
                       <div>
                         <span>{step.text}</span>
                         {step.kind === "number" ? (
                           <span className="mt-1 flex items-center gap-2">
                             <b className="text-sm tracking-wide">{step.number}</b>
-                            <button
+                            <Button
                               type="button"
                               onClick={copyNumber}
-                              className="flex items-center gap-1 rounded-md bg-white px-2 py-0.5 text-[11px] font-bold text-neutral-800"
+                              className="flex items-center gap-1 rounded-md bg-card px-2 py-0.5 text-[11px] font-bold text-foreground"
                             >
                               <CopyIcon /> Copy
-                            </button>
+                            </Button>
                             {copied ? (
-                              <span className="text-[11px] font-bold text-white">Copied ✓</span>
+                              <span className="text-[11px] font-bold text-primary-foreground">Copied ✓</span>
                             ) : null}
                           </span>
                         ) : null}
                         {step.kind === "amount" ? (
-                          <b className="text-sm" style={{ color: "#FFE24D" }}>
+                          <b className="text-sm" >
                             {" "}
                             {step.amount}
                           </b>
@@ -237,31 +242,31 @@ function ProviderPayPage() {
                 onChange={(e) => setTrx(e.target.value.toUpperCase())}
                 placeholder="Transaction ID লিখুন"
                 autoComplete="off"
-                className="mt-4 w-full rounded-xl border-0 bg-white px-3 py-2.5 text-sm font-medium tracking-wide text-neutral-900 outline-none placeholder:text-neutral-400"
+                className="mt-4 w-full rounded-lg border-0 bg-card px-3 py-2.5 text-sm font-medium tracking-wide text-foreground outline-none placeholder:text-muted-foreground"
               />
             </div>
 
             {notice ? (
-              <p className="mt-3 rounded-xl bg-white px-3 py-2 text-center text-xs text-neutral-700 shadow-sm">
+              <p className="mt-3 rounded-lg bg-card px-3 py-2 text-center text-xs text-foreground shadow-sm">
                 {notice}
               </p>
             ) : null}
 
-            <button
+            <Button
               type="button"
               onClick={() => void verify()}
               disabled={phase === "verifying" || trx.trim().length < 4}
-              className="mt-4 w-full rounded-xl px-4 py-3 text-sm font-bold tracking-wide text-white shadow-md transition-opacity disabled:opacity-50"
-              style={{ backgroundColor: brand.panelColor }}
+              className="mt-4 w-full rounded-lg px-4 py-3 text-sm font-bold tracking-wide text-primary-foreground shadow-md transition-opacity disabled:opacity-50"
+              
             >
               {phase === "verifying" ? "VERIFYING…" : "VERIFY"}
-            </button>
+            </Button>
 
             <Link
               to="/pay/$id"
               params={{ id }}
               className="mt-3 block text-center text-xs font-medium"
-              style={{ color: brand.color }}
+              
             >
               ← অন্য পেমেন্ট মাধ্যম
             </Link>

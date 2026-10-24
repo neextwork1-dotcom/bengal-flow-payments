@@ -39,11 +39,12 @@ export const getDashboard = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { supabase } = await requireAdmin(context);
-    const { data: payments } = await supabase
+    const { data: payments, error } = await supabase
       .from("payments")
       .select("id, amount, status, order_id, created_at, merchant_id, merchants(name, provider)")
       .order("created_at", { ascending: false })
       .limit(500);
+    if (error) throw new Error(error.message);
     const rows = payments ?? [];
     const completed = rows.filter((r: any) => r["status"] === "complete");
     const pending = rows.filter((r: any) => r["status"] === "pending");
@@ -76,7 +77,7 @@ export const listTransactions = createServerFn({ method: "POST" })
       query = query.eq("status", data.status);
     }
     if (data.search && data.search.trim()) {
-      const q = data.search.trim();
+      const q = data.search.trim().replace(/[(),.%]/g, "");
       query = query.or(`order_id.ilike.%${q}%,trx_id.ilike.%${q}%,customer_phone.ilike.%${q}%`);
     }
     const { data: rows, error } = await query;
@@ -146,52 +147,40 @@ export const listMerchants = createServerFn({ method: "GET" })
     const { supabase } = await requireAdmin(context);
     const { data, error } = await supabase
       .from("merchants")
-      .select("*")
+      .select("*, merchant_accounts(*)")
       .order("created_at", { ascending: true });
     if (error) throw new Error(String(error));
     return data;
   });
 
-const PROVIDER_VALUES = ["nagad", "bkash", "upay", "rocket"] as const;
-
 export const saveMerchant = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator(
-    (input: {
-      id?: string;
-      name: string;
-      provider: string;
-      accountNumber: string;
-      isActive?: boolean;
-    }) => input,
-  )
+  .inputValidator((input: { id?: string; name: string; logoUrl?: string; isActive?: boolean }) => input)
   .handler(async ({ data, context }) => {
     const { supabase } = await requireAdmin(context);
-    if (!(PROVIDER_VALUES as readonly string[]).includes(data.provider)) {
-      throw new Error("Unknown provider");
-    }
-    const account = data.accountNumber.trim();
-    if (!account) throw new Error("Account number is required");
-    const row: Record<string, unknown> = {
-      name: data.name.trim(),
-      provider: data.provider,
-      account_number: account,
-      nagad_number: account, // legacy column, kept in sync
-      is_active: data.isActive ?? true,
-    };
+    if (!data.name.trim()) throw new Error("Merchant name is required");
+    const row = { name: data.name.trim(), logo_url: data.logoUrl || null, is_active: data.isActive ?? true };
     if (data.id) {
       const { error } = await supabase.from("merchants").update(row).eq("id", data.id);
-      if (error) throw new Error(String(error));
-      return { ok: true };
+      if (error) throw new Error(error.message);
+      return { ok: true, id: data.id };
     }
-    row["callback_secret"] = randomHex(24);
-    const { data: created, error } = await supabase
-      .from("merchants")
-      .insert(row)
-      .select("id")
-      .single();
-    if (error) throw new Error(String(error));
-    return { ok: true, id: created["id"] as string };
+    const { data: created, error } = await supabase.from("merchants").insert({ ...row, nagad_number: "", callback_secret: randomHex(24) }).select("id").single();
+    if (error) throw new Error(error.message);
+    return { ok: true, id: created.id as string };
+  });
+
+export const saveMerchantAccount = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { id?: string; merchantId: string; provider: string; accountNumber: string; accountType: string; isActive?: boolean }) => input)
+  .handler(async ({ data, context }) => {
+    const { supabase } = await requireAdmin(context);
+    if (!["bkash","nagad","upay","rocket"].includes(data.provider) || !["personal","merchant"].includes(data.accountType)) throw new Error("Invalid account type or provider");
+    if (!/^01[3-9][0-9]{8,9}$/.test(data.accountNumber)) throw new Error("Enter a valid collection account number");
+    const row = { merchant_id: data.merchantId, provider: data.provider, account_number: data.accountNumber, account_type: data.accountType, is_active: data.isActive ?? true };
+    const result = data.id ? await supabase.from("merchant_accounts").update(row).eq("id",data.id) : await supabase.from("merchant_accounts").insert(row);
+    if (result.error) throw new Error(result.error.message);
+    return { ok: true };
   });
 
 // ---------- Payment links (manual payment creation) ----------
@@ -214,6 +203,10 @@ export const createPaymentLink = createServerFn({ method: "POST" })
     if (!(data.amount > 0) || data.amount > 10_000_000) {
       throw new Error("Amount must be greater than 0");
     }
+    const { data: merchant } = await supabase.from("merchants").select("id").eq("id", data.merchantId).eq("is_active", true).maybeSingle();
+    if (!merchant) throw new Error("Merchant is inactive or missing");
+    const { data: accounts } = await supabase.from("merchant_accounts").select("id").eq("merchant_id", data.merchantId).eq("is_active", true);
+    if (!accounts?.length) throw new Error("Add an active collection account first");
     const { data: created, error } = await supabase
       .from("payments")
       .insert({

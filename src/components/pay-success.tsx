@@ -19,11 +19,11 @@ export function PaySuccess({
   }, [redirectUrl]);
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#F3F7FC] px-4">
-      <div className="w-full max-w-sm rounded-3xl bg-white p-8 text-center shadow-xl">
+    <div className="flex min-h-screen items-center justify-center bg-background px-4">
+      <div className="w-full max-w-sm rounded-lg bg-card p-8 text-center shadow-xl">
         <div
-          className="mx-auto flex h-16 w-16 items-center justify-center rounded-full text-3xl font-bold text-white"
-          style={{ backgroundColor: SUCCESS_GREEN }}
+          className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-success text-3xl font-bold text-primary-foreground"
+          
         >
           ✓
         </div>

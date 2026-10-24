@@ -1,10 +1,11 @@
+import { brandHead } from "@/lib/brand";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { getDashboard } from "@/lib/serverfns/admin";
 
 export const Route = createFileRoute("/_authenticated/admin/")({
-  head: () => ({ meta: [{ title: "Dashboard — NagadPay Admin" }] }),
+  head: () => brandHead("Dashboard", "Manage dashboard in the Neext Pay payment gateway."),
   component: Dashboard,
 });
 
@@ -23,13 +24,13 @@ function Dashboard() {
       <h1 className="text-2xl font-bold">Dashboard</h1>
       <div className="grid gap-4 sm:grid-cols-4">
         {stats.map((s) => (
-          <div key={s.label} className="rounded-xl border border-border bg-card p-4">
+          <div key={s.label} className="rounded-lg border border-border bg-card p-4">
             <p className="text-sm text-muted-foreground">{s.label}</p>
             <p className="text-2xl font-bold">{s.value}</p>
           </div>
         ))}
       </div>
-      <div className="rounded-xl border border-border bg-card">
+      <div className="rounded-lg border border-border bg-card">
         <h2 className="border-b border-border p-4 font-semibold">Recent payments</h2>
         <table className="w-full text-sm">
           <tbody>

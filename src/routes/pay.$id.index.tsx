@@ -1,3 +1,5 @@
+import { Button } from "@/components/ui/button";
+import { NeextBrand } from "@/components/neext-brand";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { PaySuccess } from "@/components/pay-success";
@@ -14,12 +16,12 @@ export const Route = createFileRoute("/pay/$id/")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "Checkout — Select payment method" },
+      { title: "Checkout — Neext Pay" },
       {
-        description:
+        name: "description", content:
           "Pay with bKash, Nagad, Upay or Rocket. Copy the number, send from your wallet app, then verify with your transaction ID.",
       },
-      { property: "og:title", content: "Checkout — Select payment method" },
+      { property: "og:title", content: "Checkout — Neext Pay" },
       {
         property: "og:description",
         content: "Pay with bKash, Nagad, Upay or Rocket and verify instantly.",
@@ -87,8 +89,8 @@ function Checkout() {
 
   if (loadError) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#EAF3FB] px-4">
-        <div className="w-full max-w-sm rounded-3xl bg-white p-8 text-center shadow-xl">
+      <div className="flex min-h-screen items-center justify-center bg-background px-4">
+        <div className="w-full max-w-sm rounded-lg bg-card p-8 text-center shadow-xl">
           <p className="text-sm text-destructive">{loadError}</p>
         </div>
       </div>
@@ -97,7 +99,7 @@ function Checkout() {
 
   if (!info) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#EAF3FB]">
+      <div className="flex min-h-screen items-center justify-center bg-background">
         <p className="text-sm text-muted-foreground">Loading payment…</p>
       </div>
     );
@@ -113,11 +115,12 @@ function Checkout() {
   const initial = info.merchant.name.trim().charAt(0).toUpperCase() || "M";
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#EAF3FB]">
+    <div className="flex min-h-screen flex-col bg-background">
       <div className="mx-auto w-full max-w-md flex-1 px-4 pb-28 pt-6">
+        <div className="mb-6 flex justify-center"><NeextBrand /></div>
         {/* Merchant brand */}
         <div className="flex flex-col items-center">
-          <div className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-full bg-white shadow-lg ring-1 ring-black/5">
+          <div className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-full bg-card shadow-lg ring-1 ring-border">
             {info.merchant.logoUrl ? (
               <img
                 src={info.merchant.logoUrl}
@@ -125,22 +128,22 @@ function Checkout() {
                 className="h-full w-full object-cover"
               />
             ) : (
-              <span className="text-3xl font-bold" style={{ color: CHECKOUT_BLUE }}>
+              <span className="text-3xl font-bold" >
                 {initial}
               </span>
             )}
           </div>
           <p className="mt-3 text-lg font-semibold text-foreground">{info.merchant.name}</p>
-          <button
+          <Button
             type="button"
             onClick={() => setShowDetails((v) => !v)}
-            className="mt-1 rounded-full bg-white px-3 py-0.5 text-xs font-medium shadow-sm ring-1 ring-black/5"
-            style={{ color: CHECKOUT_BLUE }}
+            className="mt-1 rounded-full bg-card px-3 py-0.5 text-xs font-medium shadow-sm ring-1 ring-border"
+            
           >
             {showDetails ? "Hide details" : "View Details"}
-          </button>
+          </Button>
           {showDetails ? (
-            <div className="mt-2 w-full rounded-xl bg-white p-3 text-xs shadow-sm ring-1 ring-black/5">
+            <div className="mt-2 w-full rounded-lg bg-card p-3 text-xs shadow-sm ring-1 ring-border">
               <p className="flex justify-between py-0.5">
                 <span className="text-muted-foreground">Amount</span>
                 <span className="font-semibold">৳{formatBdt(info.amount)}</span>
@@ -155,8 +158,8 @@ function Checkout() {
             {[HeadsetIcon, HelpIcon, InfoIcon].map((Icon, i) => (
               <span
                 key={i}
-                className="flex h-9 w-9 items-center justify-center rounded-full bg-white shadow-sm ring-1 ring-black/5"
-                style={{ color: CHECKOUT_BLUE }}
+                className="flex h-9 w-9 items-center justify-center rounded-full bg-card shadow-sm ring-1 ring-border"
+                
               >
                 <Icon />
               </span>
@@ -165,31 +168,23 @@ function Checkout() {
         </div>
 
         {/* Method tabs */}
-        <div className="mt-5 grid grid-cols-2 gap-1 rounded-xl bg-white/80 p-1 shadow-sm ring-1 ring-black/5">
-          <button
+        <div className="mt-5 grid grid-cols-2 gap-1 rounded-lg bg-card/80 p-1 shadow-sm ring-1 ring-border">
+          <Button
             type="button"
             onClick={() => setTab("mobile")}
             className="rounded-lg px-3 py-2 text-sm font-semibold transition-colors"
-            style={
-              tab === "mobile"
-                ? { backgroundColor: CHECKOUT_BLUE, color: "#fff" }
-                : { color: "#5b6b7c" }
-            }
+            
           >
             মোবাইল ব্যাংকিং
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
             onClick={() => setTab("bank")}
             className="rounded-lg px-3 py-2 text-sm font-semibold transition-colors"
-            style={
-              tab === "bank"
-                ? { backgroundColor: CHECKOUT_BLUE, color: "#fff" }
-                : { color: "#5b6b7c" }
-            }
+            
           >
             ব্যাংক ট্রান্সফার
-          </button>
+          </Button>
         </div>
 
         {tab === "mobile" ? (
@@ -198,7 +193,7 @@ function Checkout() {
               const account = byProvider.get(p);
               const brand = PROVIDER_BRAND[p];
               return (
-                <button
+                <Button
                   key={p}
                   type="button"
                   disabled={!account}
@@ -206,15 +201,15 @@ function Checkout() {
                   onClick={() =>
                     navigate({ to: "/pay/$id/$provider", params: { id, provider: p } })
                   }
-                  className="flex h-20 items-center justify-center rounded-xl bg-white shadow-sm ring-1 ring-black/5 transition hover:-translate-y-0.5 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:translate-y-0"
+                  className="flex h-20 items-center justify-center rounded-lg bg-card shadow-sm ring-1 ring-border transition hover:-translate-y-0.5 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:translate-y-0"
                 >
                   <ProviderLogo provider={p} className="h-9" />
-                </button>
+                </Button>
               );
             })}
           </div>
         ) : (
-          <div className="mt-4 rounded-xl bg-white p-6 text-center text-sm text-muted-foreground shadow-sm ring-1 ring-black/5">
+          <div className="mt-4 rounded-lg bg-card p-6 text-center text-sm text-muted-foreground shadow-sm ring-1 ring-border">
             ব্যাংক ট্রান্সফার শীঘ্রই যোগ হচ্ছে। এখন মোবাইল ব্যাংকিং ব্যবহার করুন।
           </div>
         )}
@@ -223,9 +218,9 @@ function Checkout() {
       {/* Bottom pay bar */}
       <div
         className="fixed inset-x-0 bottom-0 z-10 py-3 text-center"
-        style={{ backgroundColor: "#DCEAFB" }}
+        
       >
-        <p className="text-base font-bold" style={{ color: CHECKOUT_BLUE }}>
+        <p className="text-base font-bold" >
           Pay ৳{formatBdt(info.amount)} BDT
         </p>
       </div>
