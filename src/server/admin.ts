@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { sendPaymentCallback } from "@/server/gateway.server";
 
 type Ctx = {
   supabase: any;
@@ -41,7 +42,7 @@ export const getDashboard = createServerFn({ method: "GET" })
     const { supabase } = await requireAdmin(context);
     const { data: payments } = await supabase
       .from("payments")
-      .select("id, amount, status, order_id, created_at, merchant_id, merchants(name)")
+      .select("id, amount, status, order_id, created_at, merchant_id, merchants(name, provider)")
       .order("created_at", { ascending: false })
       .limit(500);
     const rows = payments ?? [];
@@ -69,7 +70,7 @@ export const listTransactions = createServerFn({ method: "POST" })
     const { supabase } = await requireAdmin(context);
     let query = supabase
       .from("payments")
-      .select("*, merchants(name, nagad_number)")
+      .select("*, merchants(name, provider, account_number)")
       .order("created_at", { ascending: false })
       .limit(300);
     if (data.status && data.status !== "all") {
@@ -105,6 +106,35 @@ export const updatePaymentStatus = createServerFn({ method: "POST" })
     }
     const { error } = await supabase.from("payments").update(patch).eq("id", data.id);
     if (error) throw new Error(String(error));
+
+    // Completing a payment fires the merchant callback, same as auto-verify.
+    if (data.status === "complete") {
+      const { data: payment } = await supabase
+        .from("payments")
+        .select(
+          "id, amount, order_id, callback_url, trx_id, verified_at, merchants(name, provider, account_number, callback_secret)",
+        )
+        .eq("id", data.id)
+        .maybeSingle();
+      if (payment?.["callback_url"]) {
+        const callbackStatus = await sendPaymentCallback({
+          id: payment["id"],
+          order_id: payment["order_id"],
+          amount: payment["amount"],
+          callback_url: payment["callback_url"],
+          trx_id: payment["trx_id"],
+          verified_at: payment["verified_at"],
+          merchants: payment["merchants"],
+        });
+        await supabase
+          .from("payments")
+          .update({
+            callback_status: callbackStatus,
+            callback_sent_at: new Date().toISOString(),
+          })
+          .eq("id", data.id);
+      }
+    }
     return { ok: true };
   });
 
@@ -122,16 +152,31 @@ export const listMerchants = createServerFn({ method: "GET" })
     return data;
   });
 
+const PROVIDER_VALUES = ["nagad", "bkash", "upay", "rocket"] as const;
+
 export const saveMerchant = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(
-    (input: { id?: string; name: string; nagadNumber: string; isActive?: boolean }) => input,
+    (input: {
+      id?: string;
+      name: string;
+      provider: string;
+      accountNumber: string;
+      isActive?: boolean;
+    }) => input,
   )
   .handler(async ({ data, context }) => {
     const { supabase } = await requireAdmin(context);
-    const row = {
+    if (!(PROVIDER_VALUES as readonly string[]).includes(data.provider)) {
+      throw new Error("Unknown provider");
+    }
+    const account = data.accountNumber.trim();
+    if (!account) throw new Error("Account number is required");
+    const row: Record<string, unknown> = {
       name: data.name.trim(),
-      nagad_number: data.nagadNumber.trim(),
+      provider: data.provider,
+      account_number: account,
+      nagad_number: account, // legacy column, kept in sync
       is_active: data.isActive ?? true,
     };
     if (data.id) {
@@ -139,6 +184,7 @@ export const saveMerchant = createServerFn({ method: "POST" })
       if (error) throw new Error(String(error));
       return { ok: true };
     }
+    row["callback_secret"] = randomHex(24);
     const { data: created, error } = await supabase
       .from("merchants")
       .insert(row)
@@ -241,4 +287,29 @@ export const deleteApiKey = createServerFn({ method: "POST" })
     const { error } = await supabase.from("api_keys").delete().eq("id", data.id);
     if (error) throw new Error(String(error));
     return { ok: true };
+  });
+
+// ---------- Gateway (collected SMS + devices) ----------
+
+export const listGateway = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabase } = await requireAdmin(context);
+    const [devices, messages] = await Promise.all([
+      supabase
+        .from("gateway_devices")
+        .select("*")
+        .order("last_seen_at", { ascending: false, nullsFirst: false })
+        .limit(50),
+      supabase
+        .from("sms_transactions")
+        .select(
+          "id, sender, body, provider, account_type, trx_id, amount, account_number, device_id, matched_payment_id, received_at",
+        )
+        .order("created_at", { ascending: false })
+        .limit(100),
+    ]);
+    if (devices.error) throw new Error(String(devices.error));
+    if (messages.error) throw new Error(String(messages.error));
+    return { devices: devices.data ?? [], messages: messages.data ?? [] };
   });

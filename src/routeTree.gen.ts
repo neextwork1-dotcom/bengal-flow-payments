@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
+import { Route as PayIdRouteImport } from './routes/pay.$id'
 import { Route as ApiPublicGatewayIngestRouteImport } from './routes/api/public/gateway/ingest'
 import { Route as ApiPublicPayIdRouteImport } from './routes/api/public/pay/$id'
 import { Route as ApiPublicPaymentsCreateRouteImport } from './routes/api/public/payments/create'
@@ -36,6 +37,11 @@ const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   id: '/admin',
   path: '/admin',
   getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const PayIdRoute = PayIdRouteImport.update({
+  id: '/pay/$id',
+  path: '/pay/$id',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicGatewayIngestRoute = ApiPublicGatewayIngestRouteImport.update({
   id: '/api/public/gateway/ingest',
@@ -62,6 +68,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/admin': typeof AuthenticatedAdminRoute
+  '/pay/$id': typeof PayIdRoute
   '/api/public/gateway/ingest': typeof ApiPublicGatewayIngestRoute
   '/api/public/pay/$id': typeof ApiPublicPayIdRoute
   '/api/public/payments/create': typeof ApiPublicPaymentsCreateRoute
@@ -71,6 +78,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/admin': typeof AuthenticatedAdminRoute
+  '/pay/$id': typeof PayIdRoute
   '/api/public/gateway/ingest': typeof ApiPublicGatewayIngestRoute
   '/api/public/pay/$id': typeof ApiPublicPayIdRoute
   '/api/public/payments/create': typeof ApiPublicPaymentsCreateRoute
@@ -82,6 +90,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
+  '/pay/$id': typeof PayIdRoute
   '/api/public/gateway/ingest': typeof ApiPublicGatewayIngestRoute
   '/api/public/pay/$id': typeof ApiPublicPayIdRoute
   '/api/public/payments/create': typeof ApiPublicPaymentsCreateRoute
@@ -93,6 +102,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/admin'
+    | '/pay/$id'
     | '/api/public/gateway/ingest'
     | '/api/public/pay/$id'
     | '/api/public/payments/create'
@@ -102,6 +112,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/admin'
+    | '/pay/$id'
     | '/api/public/gateway/ingest'
     | '/api/public/pay/$id'
     | '/api/public/payments/create'
@@ -112,6 +123,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/auth'
     | '/_authenticated/admin'
+    | '/pay/$id'
     | '/api/public/gateway/ingest'
     | '/api/public/pay/$id'
     | '/api/public/payments/create'
@@ -122,6 +134,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  PayIdRoute: typeof PayIdRoute
   ApiPublicGatewayIngestRoute: typeof ApiPublicGatewayIngestRoute
   ApiPublicPayIdRoute: typeof ApiPublicPayIdRoute
   ApiPublicPaymentsCreateRoute: typeof ApiPublicPaymentsCreateRoute
@@ -157,6 +170,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin'
       preLoaderRoute: typeof AuthenticatedAdminRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/pay/$id': {
+      id: '/pay/$id'
+      path: '/pay/$id'
+      fullPath: '/pay/$id'
+      preLoaderRoute: typeof PayIdRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api/public/gateway/ingest': {
       id: '/api/public/gateway/ingest'
@@ -204,6 +224,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  PayIdRoute: PayIdRoute,
   ApiPublicGatewayIngestRoute: ApiPublicGatewayIngestRoute,
   ApiPublicPayIdRoute: ApiPublicPayIdRoute,
   ApiPublicPaymentsCreateRoute: ApiPublicPaymentsCreateRoute,
