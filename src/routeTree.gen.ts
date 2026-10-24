@@ -20,6 +20,7 @@ import { Route as AuthenticatedAdminLinksRouteImport } from './routes/_authentic
 import { Route as AuthenticatedAdminMerchantsRouteImport } from './routes/_authenticated/admin.merchants'
 import { Route as AuthenticatedAdminTransactionsRouteImport } from './routes/_authenticated/admin.transactions'
 import { Route as PayIdIndexRouteImport } from './routes/pay.$id.index'
+import { Route as PayIdProviderRouteImport } from './routes/pay.$id.$provider'
 import { Route as ApiPublicGatewayIngestRouteImport } from './routes/api/public/gateway/ingest'
 import { Route as ApiPublicPayIdRouteImport } from './routes/api/public/pay/$id'
 import { Route as ApiPublicPaymentsCreateRouteImport } from './routes/api/public/payments/create'
@@ -82,6 +83,11 @@ const PayIdIndexRoute = PayIdIndexRouteImport.update({
   path: '/',
   getParentRoute: () => PayIdRoute,
 } as any)
+const PayIdProviderRoute = PayIdProviderRouteImport.update({
+  id: '/$provider',
+  path: '/$provider',
+  getParentRoute: () => PayIdRoute,
+} as any)
 const ApiPublicGatewayIngestRoute = ApiPublicGatewayIngestRouteImport.update({
   id: '/api/public/gateway/ingest',
   path: '/api/public/gateway/ingest',
@@ -112,6 +118,7 @@ export interface FileRoutesByFullPath {
   '/admin/links': typeof AuthenticatedAdminLinksRoute
   '/admin/merchants': typeof AuthenticatedAdminMerchantsRoute
   '/admin/transactions': typeof AuthenticatedAdminTransactionsRoute
+  '/pay/$id/$provider': typeof PayIdProviderRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/pay/$id/': typeof PayIdIndexRoute
   '/api/public/gateway/ingest': typeof ApiPublicGatewayIngestRoute
@@ -126,6 +133,7 @@ export interface FileRoutesByTo {
   '/admin/links': typeof AuthenticatedAdminLinksRoute
   '/admin/merchants': typeof AuthenticatedAdminMerchantsRoute
   '/admin/transactions': typeof AuthenticatedAdminTransactionsRoute
+  '/pay/$id/$provider': typeof PayIdProviderRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/pay/$id': typeof PayIdIndexRoute
   '/api/public/gateway/ingest': typeof ApiPublicGatewayIngestRoute
@@ -144,6 +152,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/links': typeof AuthenticatedAdminLinksRoute
   '/_authenticated/admin/merchants': typeof AuthenticatedAdminMerchantsRoute
   '/_authenticated/admin/transactions': typeof AuthenticatedAdminTransactionsRoute
+  '/pay/$id/$provider': typeof PayIdProviderRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/pay/$id/': typeof PayIdIndexRoute
   '/api/public/gateway/ingest': typeof ApiPublicGatewayIngestRoute
@@ -162,6 +171,7 @@ export interface FileRouteTypes {
     | '/admin/links'
     | '/admin/merchants'
     | '/admin/transactions'
+    | '/pay/$id/$provider'
     | '/admin/'
     | '/pay/$id/'
     | '/api/public/gateway/ingest'
@@ -176,6 +186,7 @@ export interface FileRouteTypes {
     | '/admin/links'
     | '/admin/merchants'
     | '/admin/transactions'
+    | '/pay/$id/$provider'
     | '/admin'
     | '/pay/$id'
     | '/api/public/gateway/ingest'
@@ -193,6 +204,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/links'
     | '/_authenticated/admin/merchants'
     | '/_authenticated/admin/transactions'
+    | '/pay/$id/$provider'
     | '/_authenticated/admin/'
     | '/pay/$id/'
     | '/api/public/gateway/ingest'
@@ -291,6 +303,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PayIdIndexRouteImport
       parentRoute: typeof PayIdRoute
     }
+    '/pay/$id/$provider': {
+      id: '/pay/$id/$provider'
+      path: '/$provider'
+      fullPath: '/pay/$id/$provider'
+      preLoaderRoute: typeof PayIdProviderRouteImport
+      parentRoute: typeof PayIdRoute
+    }
     '/api/public/gateway/ingest': {
       id: '/api/public/gateway/ingest'
       path: '/api/public/gateway/ingest'
@@ -353,10 +372,12 @@ const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
 interface PayIdRouteChildren {
+  PayIdProviderRoute: typeof PayIdProviderRoute
   PayIdIndexRoute: typeof PayIdIndexRoute
 }
 
 const PayIdRouteChildren: PayIdRouteChildren = {
+  PayIdProviderRoute: PayIdProviderRoute,
   PayIdIndexRoute: PayIdIndexRoute,
 }
 
